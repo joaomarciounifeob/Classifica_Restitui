@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Classificador RestituiAPP</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+    }
+
+    .box {
+      background: white;
+      padding: 24px;
+      width: 100%;
+      max-width: 480px;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    h2 {
+      color: #333;
+      margin-bottom: 8px;
+      font-size: 24px;
+      text-align: center;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #666;
+      font-size: 14px;
+      margin-bottom: 24px;
+    }
+
+    .input-wrapper {
+      position: relative;
+      margin-bottom: 16px;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 140px;
+      padding: 14px;
+      font-size: 15px;
+      border: 2px solid #e0e0e0;
+      border-radius: 12px;
+      font-family: inherit;
+      resize: vertical;
+      transition: all 0.3s ease;
+    }
+
+    textarea:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    textarea::placeholder {
+      color: #aaa;
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    #resultado {
+      margin-top: 20px;
+      padding: 16px;
+      border-radius: 12px;
+      display: none;
+      animation: slideIn 0.3s ease;
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .alerta {
+      background: #fff3cd;
+      border-left: 4px solid #ffc107;
+      color: #856404;
+    }
+
+    .sucesso {
+      background: #d4edda;
+      border-left: 4px solid #28a745;
+      color: #155724;
+    }
+
+    .emoji {
+      font-size: 20px;
+      margin-right: 8px;
+    }
+
+    /* Tablets */
+    @media (min-width: 768px) {
+      .box {
+        padding: 32px;
+      }
+
+      h2 {
+        font-size: 28px;
+      }
+
+      textarea {
+        min-height: 160px;
+        font-size: 16px;
+      }
+    }
+
+    /* Desktop */
+    @media (min-width: 1024px) {
+      body {
+        padding: 32px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="box">
+    <h2>Classificador RestituiAPP</h2>
+    <p class="subtitle">Identifique mensagens que precisam de atenção</p>
+
+    <div class="input-wrapper">
+      <textarea id="mensagem" placeholder="Cole aqui a mensagem para classificar..."></textarea>
+    </div>
+
+    <button onclick="classificar()">Classificar Mensagem</button>
+
+    <div id="resultado"></div>
+  </div>
+
+  <script>
+    function vetorizar(texto) {
+      texto = texto.toLowerCase();
+
+      const aflicao = texto.includes("oração") || texto.includes("ajuda") || texto.includes("preciso");
+      const cumprimento = texto.includes("bom dia") || texto.includes("boa tarde") || texto.includes("boa noite");
+      const organizacao = texto.includes("culto") || texto.includes("aviso") || texto.includes("confirmado");
+
+      return [
+        aflicao ? 1 : 0,
+        cumprimento ? 1 : 0,
+        organizacao ? 1 : 0
+      ];
+    }
+
+    async function classificar() {
+      const texto = document.getElementById("mensagem").value;
+
+      if (!texto.trim()) {
+        alert("Por favor, insira uma mensagem para classificar.");
+        return;
+      }
+
+      const vetor = vetorizar(texto);
+
+      const r = await fetch("http://localhost:3000/classificar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ x: vetor })
+      });
+
+      const json = await r.json();
+      const output = document.getElementById("resultado");
+      output.style.display = "block";
+
+      if (json.classificacao === 1) {
+        output.className = "alerta";
+        output.innerHTML = '<span class="emoji">🔔</span>Mensagem indica possível pedido de ajuda espiritual.';
+      } else {
+        output.className = "sucesso";
+        output.innerHTML = '<span class="emoji">✅</span>Mensagem comum, sem necessidade de atenção especial.';
+      }
+    }
+  </script>
+
+</body>
+
+</html>
