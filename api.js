@@ -8,8 +8,10 @@ app.use(cors());
 
 // Substitua por seus pesos do treino!
 const modelo = new Perceptron(3);
-modelo.pesos = [0.4603889592193404, 0.18505676816548852, -0.07191630420210537];
-modelo.bias = -0.3604069000913842;
+modelo.pesos = [
+  0.002631039496704836, -0.02968551476110659, -0.029547710878888855,
+];
+modelo.bias = 0.02816114201653673;
 
 app.post("/classificar", (req, res) => {
   const { x } = req.body;
